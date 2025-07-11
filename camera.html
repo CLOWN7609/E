@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض الصور الخاص بي</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            direction: rtl; /* لدعم اللغة العربية */
+            text-align: right;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+        .upload-section input[type="file"] {
+            display: none; /* إخفاء زر التصفح الافتراضي */
+        }
+        .upload-section label {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .upload-section label:hover {
+            background-color: #0056b3;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center; /* لمحاذاة الصور في المنتصف */
+        }
+        .gallery-item {
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 120px; /* ارتفاع ثابت للصور */
+            object-fit: cover; /* لضمان تغطية الصورة للمساحة دون تشويه */
+            display: block;
+            border-radius: 3px;
+        }
+        .gallery-item p {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #555;
+            word-break: break-all; /* لكسر الكلمات الطويلة */
+        }
+    </style>
+</head>
+<body>
+  <a href="open.html">you can quit from here</a>
+    <div class="container">
+        <h1>معرض الصور الخاص بي</h1>
+
+        <div class="upload-section">
+            <h2>تحميل صور جديدة</h2>
+            <input type="file" id="imageUpload" accept="image/*" multiple>
+            <label for="imageUpload">اختر صورًا للتحميل</label>
+            <p>يمكنك اختيار صورة واحدة أو أكثر.</p>
+        </div>
+
+        <hr>
+
+        <h2>الصور المحملة</h2>
+        <div id="imageGallery" class="gallery">
+            <p style="grid-column: 1 / -1; text-align: center; color: #888;">لا توجد صور لعرضها بعد. قم بتحميل بعض الصور!</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('imageUpload').addEventListener('change', function(event) {
+            const files = event.target.files;
+            const gallery = document.getElementById('imageGallery');
+            
+            // إزالة رسالة "لا توجد صور" إذا كانت موجودة
+            const noImagesMessage = gallery.querySelector('p');
+            if (noImagesMessage && noImagesMessage.textContent.includes('لا توجد صور')) {
+                noImagesMessage.remove();
+            }
+
+            if (files) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.type.startsWith('image/')) { // التأكد من أن الملف صورة
+                        const reader = new FileReader();
+
+                        reader.onload = function(e) {
+                            const imgContainer = document.createElement('div');
+                            imgContainer.className = 'gallery-item';
+
+                            const imgElement = document.createElement('img');
+                            imgElement.src = e.target.result;
+                            imgElement.alt = file.name; // استخدام اسم الملف كنص بديل
+
+                            const imgName = document.createElement('p');
+                            imgName.textContent = file.name;
+
+                            imgContainer.appendChild(imgElement);
+                            imgContainer.appendChild(imgName);
+                            gallery.appendChild(imgContainer);
+                        };
+
+                        reader.readAsDataURL(file); // قراءة الملف كـ URL للبيانات
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
