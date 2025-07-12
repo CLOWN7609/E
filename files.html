@@ -228,6 +228,7 @@
         <ul class="file-list" id="fileList">
             </ul>
         <p id="emptyFolderMessage" class="empty-folder" style="display: none;">هذا المجلد فارغ.</p>
+        
 
         <a href="open.html" class="back-button">العودة إلى النظام</a>
     </div>
@@ -508,7 +509,7 @@
 
             // التأكد من أن الملف ليس كبيراً جداً (Local Storage محدود)
             const MAX_SIZE_MB = 1000000; // الحد الأقصى للملفات المحملة (5 ميجابايت)
-            if (file.size > MAX_SIZE_MB * 4096 * 4096) {
+            if (file.size > MAX_SIZE_MB * 1000000 * 1000000) {
                 uploadFileMessage.textContent = `الملف كبير جداً. الحد الأقصى ${MAX_SIZE_MB} ميجابايت.`;
                 uploadFileMessage.classList.add('error');
                 event.target.value = ''; 
