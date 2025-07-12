@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإعدادات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            direction: rtl;
+            text-align: right;
+            background-color: #f4f4f4; /* لون افتراضي سيتم تغييره */
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 25px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            background-color: #fff;
+            border-radius: 8px;
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .setting-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1em;
+        }
+        .setting-item input[type="color"] {
+            width: 100px;
+            height: 40px;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        .back-button {
+            display: block;
+            width: fit-content;
+            margin: 30px auto 0;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>إعدادات النظام</h1>
+
+        <div class="setting-item">
+            <label for="backgroundColor">لون خلفية النظام:</label>
+            <input type="color" id="backgroundColor" value="#f4f4f4">
+        </div>
+
+        <a href="open.html" class="back-button">العودة إلى النظام</a>
+    </div>
+
+    <script>
+        // دالة لتحميل وتطبيق الإعدادات عند تحميل الصفحة
+        function loadSettings() {
+            const savedBackgroundColor = localStorage.getItem('systemBackgroundColor');
+            if (savedBackgroundColor) {
+                document.body.style.backgroundColor = savedBackgroundColor;
+                document.getElementById('backgroundColor').value = savedBackgroundColor;
+            }
+        }
+
+        // دالة لحفظ الإعداد وتطبيقه
+        function saveBackgroundColor(color) {
+            localStorage.setItem('systemBackgroundColor', color);
+            document.body.style.backgroundColor = color;
+        }
+
+        // الاستماع لتغييرات مدخل اللون
+        document.getElementById('backgroundColor').addEventListener('input', function() {
+            saveBackgroundColor(this.value);
+        });
+
+        // تحميل الإعدادات عند تحميل الصفحة
+        window.onload = loadSettings;
+    </script>
+
+</body>
+</html>
