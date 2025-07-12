@@ -1,18 +1,60 @@
 <!DOCTYPE html>
 <title>new simple OS</title>
+<style>
+body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: left; /* محاذاة لليمين للنص العربي */
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+.button {
+            display: block;
+            width: fit-content;
+            margin: 30px auto 0;
+            background-color: green;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: black;
+        }
+h1 {
+  color: yellow;
+}
+h2 {
+  color: lime;
+}
+</style>
 <img src="./pictures/imgs.jpg">
-<a href="camera.html">images</a>
+<a href="camera.html" class="button">images</a>
 <img src="./pictures/screenshot/cam.jpg">
-<a href="imgs.html">open camera</a>
-<a href="off.html">turn off device</a>
+<a href="imgs.html" class="button">open camera</a>
+<img src="./pictures/power.jpg" width="50%" height="50%">
+<a href="off.html" class="button">turn off device</a>
 <img src="./pictures/settings.jpg">
-<a href="settings.html">Settings</a>
+<a href="settings.html" class="button">Settings</a>
 <img src="./pictures/playstore.jpg">
-<a href="playstore.html">Play Store</a>
+<a href="playstore.html" class="button">Play Store</a>
 <img src="./pictures/rec.jpg">
-<a href="videorec.html">Video Recorder</a>
+<a href="videorec.html" class="button">Video Recorder</a>
 <img src="./pictures/player.jpg">
-<a href="videoplayer.html">Video Player</a>
+<a href="videoplayer.html" class="button">Video Player</a>
 <img src="./pictures/clock.jpg">
-<a href="clock.html">clock</a>
-<a href="lockscreen.html">Lock device</a>
+<a href="clock.html" class="button">clock</a>
+<img src="./pictures/lock.png" width="50%" height="50%">
+<a href="lockscreen.html" class="button">Lock device</a>
+<img src="./pictures/files.jpg">
+<a href="files.html" class="button">Files Explorer</a>
+<img src="./pictures/49.jpg" width="51%" height="51%">
+<a href="sysinfo.html" class="button">Device info</a>
