@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق الساعة</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: center;
+            background-color: #222;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            width: 90%;
+            margin: 20px auto;
+            padding: 25px;
+            border: 1px solid #444;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-color: #333;
+            border-radius: 10px;
+        }
+        h1 {
+            color: #00aaff;
+            margin-bottom: 25px;
+        }
+        .clock-display {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #00ff99; /* لون أخضر فاتح للساعة */
+            text-shadow: 0 0 10px rgba(0,255,153,0.5);
+        }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #555;
+        }
+        .tab-button {
+            background-color: #444;
+            color: #eee;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            transition: background-color 0.3s ease;
+            margin: 0 2px;
+        }
+        .tab-button.active {
+            background-color: #007bff;
+            color: white;
+            border-bottom: 2px solid #007bff;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Alarm & Timer Styles */
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        .input-group input[type="time"],
+        .input-group input[type="number"] {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: #eee;
+            font-size: 1em;
+            width: 150px;
+            text-align: center;
+        }
+        .controls button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+        }
+        .controls button.red {
+            background-color: #dc3545;
+        }
+        .controls button.red:hover {
+            background-color: #c82333;
+        }
+        .controls button.green {
+            background-color: #28a745;
+        }
+        .controls button.green:hover {
+            background-color: #218838;
+        }
+        .alarm-list, .timer-display {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #ccc;
+        }
+        .alarm-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .alarm-item button {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+        .timer-display {
+            font-size: 2.5em;
+            color: #00ff99;
+            margin-bottom: 20px;
+        }
+        .message {
+            margin-top: 20px;
+            color: #ffcc00;
+            font-size: 0.9em;
+        }
+        .back-button {
+            display: block;
+            width: fit-content;
+            margin: 30px auto 0;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>تطبيق الساعة</h1>
+
+        <div class="clock-display" id="currentTime"></div>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="clock">الساعة</button>
+            <button class="tab-button" data-tab="alarm">المنبه</button>
+            <button class="tab-button" data-tab="timer">المؤقت</button>
+        </div>
+
+        <div id="clock" class="tab-content active">
+            <p class="message">الوقت الحالي لمدينتك.</p>
+        </div>
+
+        <div id="alarm" class="tab-content">
+            <div class="input-group">
+                <label for="alarmTime">ضبط وقت المنبه:</label>
+                <input type="time" id="alarmTime" value="07:00">
+            </div>
+            <div class="controls">
+                <button id="setAlarmButton" class="green">ضبط المنبه</button>
+            </div>
+            <div class="alarm-list" id="alarmsList">
+                <h3>المنبهات المضبوطة:</h3>
+                </div>
+            <p id="alarmMessage" class="message"></p>
+        </div>
+
+        <div id="timer" class="tab-content">
+            <div class="input-group">
+                <label for="timerMinutes">الدقائق:</label>
+                <input type="number" id="timerMinutes" value="0" min="0">
+                <label for="timerSeconds">الثواني:</label>
+                <input type="number" id="timerSeconds" value="0" min="0" max="59">
+            </div>
+            <div class="controls">
+                <button id="startTimerButton" class="green">بدء المؤقت</button>
+                <button id="pauseTimerButton" disabled>إيقاف مؤقت</button>
+                <button id="resetTimerButton" disabled class="red">إعادة تعيين</button>
+            </div>
+            <div class="timer-display" id="timerDisplay">00:00</div>
+            <p id="timerMessage" class="message"></p>
+        </div>
+
+        <a href="open.html" class="back-button">العودة إلى النظام</a>
+    </div>
+
+    <script>
+        // =========================================================
+        // وظائف الساعة الرئيسية
+        // =========================================================
+        const currentTimeDisplay = document.getElementById('currentTime');
+
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            currentTimeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // تحديث الساعة كل ثانية
+        setInterval(updateClock, 1000);
+        updateClock(); // تحديث فوري عند التحميل
+
+        // =========================================================
+        // وظائف تبديل التبويبات
+        // =========================================================
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // إزالة التنشيط من جميع الأزرار والمحتويات
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // تنشيط الزر والمحتوى المختار
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
+            });
+        });
+
+        // =========================================================
+        // وظائف المنبه (Alarm)
+        // =========================================================
+        const alarmTimeInput = document.getElementById('alarmTime');
+        const setAlarmButton = document.getElementById('setAlarmButton');
+        const alarmsList = document.getElementById('alarmsList');
+        const alarmMessage = document.getElementById('alarmMessage');
+
+        let alarms = []; // لتخزين المنبهات المضبوطة
+
+        function renderAlarms() {
+            alarmsList.innerHTML = '<h3>المنبهات المضبوطة:</h3>';
+            if (alarms.length === 0) {
+                alarmsList.innerHTML += '<p>لا توجد منبهات مضبوطة.</p>';
+                return;
+            }
+            alarms.forEach((alarm, index) => {
+                const alarmItem = document.createElement('div');
+                alarmItem.classList.add('alarm-item');
+                alarmItem.innerHTML = `
+                    <span>${alarm.time}</span>
+                    <button data-index="${index}">حذف</button>
+                `;
+                alarmsList.appendChild(alarmItem);
+            });
+
+            // إضافة معالجات أحداث لأزرار الحذف
+            alarmsList.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const indexToDelete = parseInt(event.target.dataset.index);
+                    removeAlarm(indexToDelete);
+                });
+            });
+        }
+
+        function setAlarm() {
+            const alarmTime = alarmTimeInput.value;
+            if (!alarmTime) {
+                alarmMessage.textContent = 'الرجاء تحديد وقت للمنبه.';
+                return;
+            }
+
+            // تحقق مما إذا كان المنبه موجوداً بالفعل
+            if (alarms.some(alarm => alarm.time === alarmTime)) {
+                alarmMessage.textContent = 'هذا المنبه مضبوط بالفعل.';
+                return;
+            }
+
+            const newAlarm = {
+                time: alarmTime,
+                intervalId: null // لتخزين معرف setInterval
+            };
+            alarms.push(newAlarm);
+            renderAlarms();
+            alarmMessage.textContent = `تم ضبط المنبه لوقت: ${alarmTime}`;
+
+            // بدء التحقق من المنبه
+            checkAlarm(newAlarm);
+        }
+
+        function checkAlarm(alarm) {
+            const [alarmHours, alarmMinutes] = alarm.time.split(':').map(Number);
+
+            alarm.intervalId = setInterval(() => {
+                const now = new Date();
+                const currentHours = now.getHours();
+                const currentMinutes = now.getMinutes();
+                const currentSeconds = now.getSeconds();
+
+                if (currentHours === alarmHours && currentMinutes === alarmMinutes && currentSeconds === 0) {
+                    alert(`حان وقت المنبه! ${alarm.time}`);
+                    clearInterval(alarm.intervalId); // إيقاف التحقق من هذا المنبه
+                    removeAlarmByTime(alarm.time); // إزالة المنبه بعد تشغيله
+                }
+            }, 1000); // التحقق كل ثانية
+        }
+
+        function removeAlarm(index) {
+            if (alarms[index] && alarms[index].intervalId) {
+                clearInterval(alarms[index].intervalId); // إيقاف التحقق
+            }
+            alarms.splice(index, 1); // إزالة المنبه من المصفوفة
+            renderAlarms();
+            alarmMessage.textContent = 'تم حذف المنبه.';
+        }
+
+        function removeAlarmByTime(time) {
+            const index = alarms.findIndex(alarm => alarm.time === time);
+            if (index !== -1) {
+                removeAlarm(index);
+            }
+        }
+
+        setAlarmButton.addEventListener('click', setAlarm);
+        renderAlarms(); // عرض المنبهات عند التحميل (إذا كانت هناك بيانات محفوظة)
+
+        // =========================================================
+        // وظائف المؤقت (Timer)
+        // =========================================================
+        const timerMinutesInput = document.getElementById('timerMinutes');
+        const timerSecondsInput = document.getElementById('timerSeconds');
+        const startTimerButton = document.getElementById('startTimerButton');
+        const pauseTimerButton = document.getElementById('pauseTimerButton');
+        const resetTimerButton = document.getElementById('resetTimerButton');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerMessage = document.getElementById('timerMessage');
+
+        let timerInterval;
+        let totalSeconds = 0;
+        let isTimerRunning = false;
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            const minutes = parseInt(timerMinutesInput.value);
+            const seconds = parseInt(timerSecondsInput.value);
+
+            if (isNaN(minutes) || isNaN(seconds) || (minutes === 0 && seconds === 0)) {
+                timerMessage.textContent = 'الرجاء إدخال دقائق أو ثواني صالحة.';
+                return;
+            }
+
+            if (!isTimerRunning) {
+                totalSeconds = (minutes * 60) + seconds;
+            }
+            
+            if (totalSeconds <= 0) {
+                timerMessage.textContent = 'وقت المؤقت انتهى. يرجى إعادة تعيينه.';
+                return;
+            }
+
+            isTimerRunning = true;
+            startTimerButton.disabled = true;
+            pauseTimerButton.disabled = false;
+            resetTimerButton.disabled = false;
+            timerMinutesInput.disabled = true;
+            timerSecondsInput.disabled = true;
+
+            timerInterval = setInterval(() => {
+                totalSeconds--;
+                timerDisplay.textContent = formatTime(totalSeconds);
+
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    timerDisplay.textContent = '00:00';
+                    timerMessage.textContent = 'انتهى وقت المؤقت!';
+                    alert('انتهى وقت المؤقت!');
+                    startTimerButton.disabled = false;
+                    pauseTimerButton.disabled = true;
+                    timerMinutesInput.disabled = false;
+                    timerSecondsInput.disabled = false;
+                }
+            }, 1000);
+            timerMessage.textContent = 'المؤقت يعمل...';
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            startTimerButton.disabled = false;
+            pauseTimerButton.disabled = true;
+            timerMessage.textContent = 'المؤقت متوقف مؤقتاً.';
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            totalSeconds = 0;
+            timerDisplay.textContent = '00:00';
+            startTimerButton.disabled = false;
+            pauseTimerButton.disabled = true;
+            resetTimerButton.disabled = true;
+            timerMinutesInput.disabled = false;
+            timerSecondsInput.disabled = false;
+            timerMinutesInput.value = 0;
+            timerSecondsInput.value = 0;
+            timerMessage.textContent = 'تمت إعادة تعيين المؤقت.';
+        }
+
+        startTimerButton.addEventListener('click', startTimer);
+        pauseTimerButton.addEventListener('click', pauseTimer);
+        resetTimerButton.addEventListener('click', resetTimer);
+    </script>
+
+</body>
+</html>
