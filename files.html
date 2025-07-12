@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملفات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: right; /* محاذاة لليمين للنص العربي */
+            background-color: #222;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 20px auto;
+            padding: 25px;
+            border: 1px solid #444;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-color: #333;
+            border-radius: 10px;
+        }
+        h1 {
+            color: #00aaff;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .path-bar {
+            background-color: #444;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .path-bar span {
+            color: #bbb;
+            font-size: 0.9em;
+        }
+        .path-bar a {
+            color: #00aaff;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .path-bar a:hover {
+            text-decoration: underline;
+        }
+        .path-bar button {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 0.8em;
+            transition: background-color 0.2s ease;
+        }
+        .path-bar button:hover {
+            background-color: #666;
+        }
+
+        /* تنسيقات أقسام الإجراءات (إنشاء مجلد، تحميل ملف) */
+        .actions-section {
+            display: grid; /* استخدام grid لترتيب العناصر */
+            grid-template-columns: 1fr; /* عمود واحد افتراضياً */
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #444;
+            border-radius: 8px;
+        }
+        @media (min-width: 600px) { /* لجعلها عمودين على الشاشات الأكبر */
+            .actions-section {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .action-box {
+            border: 1px solid #555;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #3a3a3a;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .action-box h3 {
+            color: #eee;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+        .action-box input[type="text"],
+        .action-box input[type="file"] {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #2a2a2a;
+            color: #eee;
+            font-size: 1em;
+        }
+        .action-box button {
+            background-color: #28a745; /* أخضر لإنشاء مجلد */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+        .action-box button.upload {
+            background-color: #007bff; /* أزرق لتحميل الملف */
+        }
+        .action-box button:hover {
+            background-color: #218838;
+        }
+        .action-box button.upload:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            color: #ffcc00;
+            font-size: 0.9em;
+            margin-top: 5px;
+            margin-bottom: 0;
+            width: 100%;
+            text-align: center;
+        }
+        .message.error {
+            color: #dc3545;
+        }
+        .message.success {
+            color: #28a745;
+        }
+
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .file-list li {
+            background-color: #3a3a3a;
+            margin-bottom: 8px;
+            padding: 12px 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .file-list li:hover {
+            background-color: #4a4a4a;
+        }
+        .file-list li .icon {
+            margin-left: 10px;
+            font-size: 1.5em;
+        }
+        .file-list li .name {
+            flex-grow: 1;
+            font-size: 1.1em;
+            color: #fff;
+        }
+        .file-list li .type {
+            font-size: 0.8em;
+            color: #bbb;
+        }
+        .empty-folder {
+            color: #aaa;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+        .back-button {
+            display: block;
+            width: fit-content;
+            margin: 30px auto 0;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>الملفات</h1>
+
+        <div class="path-bar">
+            <button id="upButton" style="display: none;">⤴️ رجوع</button>
+            <span id="currentPath">/</span>
+        </div>
+
+        <div class="actions-section">
+            <div class="action-box">
+                <h3>إنشاء مجلد جديد</h3>
+                <input type="text" id="newFolderName" placeholder="اسم المجلد">
+                <button id="createFolderButton">إنشاء</button>
+                <p id="createFolderMessage" class="message"></p>
+            </div>
+            <div class="action-box">
+                <h3>تحميل ملف</h3>
+                <input type="file" id="uploadFileInput" hidden>
+                <button id="uploadFileButton" class="upload">اختيار ملف للتحميل</button>
+                <p id="uploadFileMessage" class="message"></p>
+            </div>
+        </div>
+        
+        <ul class="file-list" id="fileList">
+            </ul>
+        <p id="emptyFolderMessage" class="empty-folder" style="display: none;">هذا المجلد فارغ.</p>
+
+        <a href="open.html" class="back-button">العودة إلى النظام</a>
+    </div>
+
+    <script>
+        const fileList = document.getElementById('fileList');
+        const currentPathDisplay = document.getElementById('currentPath');
+        const upButton = document.getElementById('upButton');
+        const emptyFolderMessage = document.getElementById('emptyFolderMessage');
+        
+        const newFolderNameInput = document.getElementById('newFolderName');
+        const createFolderButton = document.getElementById('createFolderButton');
+        const createFolderMessage = document.getElementById('createFolderMessage');
+
+        const uploadFileInput = document.getElementById('uploadFileInput');
+        const uploadFileButton = document.getElementById('uploadFileButton');
+        const uploadFileMessage = document.getElementById('uploadFileMessage');
+
+        // =====================================================================
+        // **** هيكل نظام الملفات الخاص بك ****
+        // =====================================================================
+        let fileSystemStructure = {
+            'folder_icon': '📁',
+            'file_icon': '📄',
+            'up_icon': '⤴️',
+
+            'root': {
+                'type': 'folder',
+                'contents': {
+                    'DCIM': {
+                        'type': 'folder',
+                        'contents': {
+                            'Camera': { 'type': 'folder', 'contents': {} } // مجلد فارغ مبدئياً
+                        }
+                    },
+                    'Downloads': { 'type': 'folder', 'contents': {} },
+                    'Music': { 'type': 'folder', 'contents': {} },
+                    'Documents': { 'type': 'folder', 'contents': {} },
+                    'Videos': { 'type': 'folder', 'contents': {} },
+                    
+                    // الملفات الافتراضية التي تأتي مع النظام (مرفوعة على GitHub Pages)
+                    'تطبيق_الساعة.html': { 'type': 'file', 'path': 'clock_app.html', 'source': 'remote' },
+                    'صفحة_الرئيسية.html': { 'type': 'file', 'path': 'open.html', 'source': 'remote' },
+                    'شاشة_القفل.html': { 'type': 'file', 'path': 'lockscreen.html', 'source': 'remote' },
+                    'مشغل_الفيديو.html': { 'type': 'file', 'path': 'video_player.html', 'source': 'remote' },
+                    'مسجل_الفيديو.html': { 'type': 'file', 'path': 'video_recorder.html', 'source': 'remote' }
+                }
+            }
+        };
+
+        let currentDirectory = null;
+        let currentPath = [];
+
+        // =====================================================================
+        // وظائف إدارة تخزين نظام الملفات (LocalStorage)
+        // =====================================================================
+
+        function loadFileSystem() {
+            const savedFileSystem = localStorage.getItem('myWebFileSystem');
+            if (savedFileSystem) {
+                try {
+                    const parsedSystem = JSON.parse(savedFileSystem);
+                    // ندمج المحتوى المحفوظ مع الأيقونات والمجلدات الأساسية إذا أردنا
+                    // هنا، سنحل محل "root" بالكامل لتبسيط الأمر، لكن يجب أن تكون حذراً مع هذا إذا كان لديك ملفات افتراضية تريد الحفاظ عليها.
+                    fileSystemStructure.root = parsedSystem.root; 
+                } catch (e) {
+                    console.error("Failed to parse saved file system:", e);
+                    // في حالة وجود خطأ في البيانات المحفوظة، نعود إلى الهيكل الافتراضي
+                    // يمكنك هنا اختيار مسح localStorage أو استخدام هيكل احتياطي
+                    localStorage.removeItem('myWebFileSystem'); 
+                }
+            }
+            currentDirectory = fileSystemStructure.root;
+            currentPath = ['/'];
+        }
+
+        function saveFileSystem() {
+            localStorage.setItem('myWebFileSystem', JSON.stringify(fileSystemStructure));
+        }
+
+        // =====================================================================
+        // وظائف JavaScript الرئيسية لمستكشف الملفات
+        // =====================================================================
+
+        function renderDirectory() {
+            fileList.innerHTML = '';
+            emptyFolderMessage.style.display = 'none';
+
+            const contents = currentDirectory.contents;
+            const items = Object.keys(contents).sort((a, b) => {
+                const aType = contents[a].type;
+                const bType = contents[b].type;
+                if (aType === 'folder' && bType !== 'folder') return -1;
+                if (aType !== 'folder' && bType === 'folder') return 1;
+                return a.localeCompare(b);
+            });
+
+            if (items.length === 0) {
+                emptyFolderMessage.style.display = 'block';
+                return;
+            }
+
+            items.forEach(itemName => {
+                const item = contents[itemName];
+                const listItem = document.createElement('li');
+                listItem.dataset.name = itemName;
+
+                let icon = '';
+                if (item.type === 'folder') {
+                    icon = fileSystemStructure.folder_icon;
+                    listItem.classList.add('folder');
+                } else if (item.type === 'file') {
+                    icon = fileSystemStructure.file_icon;
+                    listItem.classList.add('file');
+                }
+
+                listItem.innerHTML = `
+                    <span class="icon">${icon}</span>
+                    <span class="name">${itemName}</span>
+                `;
+                fileList.appendChild(listItem);
+            });
+
+            updatePathBar();
+        }
+
+        function updatePathBar() {
+            currentPathDisplay.innerHTML = '';
+            
+            const rootLink = document.createElement('a');
+            rootLink.href = '#';
+            rootLink.textContent = '/';
+            rootLink.dataset.pathIndex = 0;
+            rootLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateToPath(0);
+            });
+            currentPathDisplay.appendChild(rootLink);
+
+            if (currentPath.length > 1) {
+                const separator = document.createElement('span');
+                separator.textContent = ' / ';
+                currentPathDisplay.appendChild(separator);
+            }
+
+            currentPath.slice(1).forEach((part, index) => {
+                const link = document.createElement('a');
+                link.href = '#';
+                link.textContent = part;
+                link.dataset.pathIndex = index + 1; 
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateToPath(index + 1);
+                });
+                currentPathDisplay.appendChild(link);
+                if (index < currentPath.length - 2) {
+                    const separator = document.createElement('span');
+                    separator.textContent = ' / ';
+                    currentPathDisplay.appendChild(separator);
+                }
+            });
+
+            if (currentPath.length > 1) {
+                upButton.style.display = 'inline-block';
+            } else {
+                upButton.style.display = 'none';
+            }
+        }
+
+        function navigateToPath(index) {
+            currentPath.splice(index + 1);
+            let tempDir = fileSystemStructure.root;
+            for (let i = 1; i < currentPath.length; i++) {
+                tempDir = tempDir.contents[currentPath[i]];
+            }
+            currentDirectory = tempDir;
+            renderDirectory();
+        }
+
+        fileList.addEventListener('click', (event) => {
+            const listItem = event.target.closest('li');
+            if (!listItem) return;
+
+            const itemName = listItem.dataset.name;
+            const item = currentDirectory.contents[itemName];
+
+            if (item.type === 'folder') {
+                currentDirectory = item;
+                currentPath.push(itemName);
+                renderDirectory();
+            } else if (item.type === 'file') {
+                // فتح الملف بناءً على مصدره (محلي أو بعيد)
+                if (item.source === 'remote' && item.path) {
+                    window.open(item.path, '_blank');
+                } else if (item.source === 'local' && item.data) {
+                    // فتح البيانات كـ URL في تبويب جديد
+                    const newWindow = window.open();
+                    newWindow.document.write(`<iframe src="${item.data}" frameborder="0" style="width:100%; height:100%;"></iframe>`);
+                    // يمكنك أيضاً استخدام: newWindow.location.href = item.data; لبعض أنواع الملفات
+                } else {
+                    alert('لا يمكن فتح هذا الملف أو بياناته غير متوفرة.');
+                }
+            }
+        });
+
+        upButton.addEventListener('click', () => {
+            if (currentPath.length > 1) {
+                currentPath.pop();
+                let parentDir = fileSystemStructure.root;
+                for (let i = 1; i < currentPath.length; i++) {
+                    parentDir = parentDir.contents[currentPath[i]];
+                }
+                currentDirectory = parentDir;
+                renderDirectory();
+            }
+        });
+
+        // =====================================================================
+        // وظيفة إنشاء مجلد جديد (موجودة من قبل)
+        // =====================================================================
+        createFolderButton.addEventListener('click', () => {
+            const folderName = newFolderNameInput.value.trim();
+            createFolderMessage.textContent = '';
+            createFolderMessage.classList.remove('error', 'success');
+
+            if (!folderName) {
+                createFolderMessage.textContent = 'الرجاء إدخال اسم للمجلد.';
+                createFolderMessage.classList.add('error');
+                return;
+            }
+            if (currentDirectory.contents[folderName]) {
+                createFolderMessage.textContent = `مجلد/ملف باسم "${folderName}" موجود بالفعل.`;
+                createFolderMessage.classList.add('error');
+                return;
+            }
+
+            currentDirectory.contents[folderName] = {
+                'type': 'folder',
+                'contents': {}
+            };
+
+            saveFileSystem();
+            renderDirectory();
+            newFolderNameInput.value = '';
+            createFolderMessage.textContent = `تم إنشاء المجلد "${folderName}" بنجاح.`;
+            createFolderMessage.classList.add('success');
+        });
+
+        // =====================================================================
+        // وظيفة تحميل ملف جديد
+        // =====================================================================
+
+        // عند النقر على زر "اختيار ملف للتحميل"، يتم تنشيط حقل الإدخال المخفي
+        uploadFileButton.addEventListener('click', () => {
+            uploadFileInput.click();
+            uploadFileMessage.textContent = ''; // مسح الرسائل السابقة
+            uploadFileMessage.classList.remove('error', 'success');
+        });
+
+        // عند اختيار ملف في حقل الإدخال
+        uploadFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0]; // الحصول على الملف الأول المختار
+
+            if (!file) {
+                uploadFileMessage.textContent = 'لم يتم اختيار أي ملف.';
+                uploadFileMessage.classList.add('error');
+                return;
+            }
+
+            // التحقق من وجود ملف بنفس الاسم في الدليل الحالي
+            if (currentDirectory.contents[file.name]) {
+                uploadFileMessage.textContent = `ملف باسم "${file.name}" موجود بالفعل.`;
+                uploadFileMessage.classList.add('error');
+                // مسح اختيار الملف لمنع التحميل المتكرر لنفس الملف بعد رسالة الخطأ
+                event.target.value = ''; 
+                return;
+            }
+
+            // التأكد من أن الملف ليس كبيراً جداً (Local Storage محدود)
+            const MAX_SIZE_MB = 1000000; // الحد الأقصى للملفات المحملة (5 ميجابايت)
+            if (file.size > MAX_SIZE_MB * 4096 * 4096) {
+                uploadFileMessage.textContent = `الملف كبير جداً. الحد الأقصى ${MAX_SIZE_MB} ميجابايت.`;
+                uploadFileMessage.classList.add('error');
+                event.target.value = ''; 
+                return;
+            }
+
+            const reader = new FileReader(); // لقرأة محتوى الملف
+
+            // عندما يتم قراءة الملف بنجاح
+            reader.onload = (e) => {
+                const fileDataUrl = e.target.result; // محتوى الملف كـ Data URL
+
+                // إضافة الملف الجديد إلى المحتويات الحالية
+                currentDirectory.contents[file.name] = {
+                    'type': 'file',
+                    'source': 'local', // علامة تدل على أنه ملف محلي محمل
+                    'data': fileDataUrl // البيانات الفعلية للملف (Data URL)
+                };
+
+                saveFileSystem(); // حفظ التغييرات إلى LocalStorage
+                renderDirectory(); // إعادة عرض المجلد لتضمين الملف الجديد
+                uploadFileMessage.textContent = `تم تحميل الملف "${file.name}" بنجاح.`;
+                uploadFileMessage.classList.add('success');
+                event.target.value = ''; // مسح اختيار الملف
+            };
+
+            // عند حدوث خطأ في قراءة الملف
+            reader.onerror = () => {
+                uploadFileMessage.textContent = 'حدث خطأ أثناء قراءة الملف.';
+                uploadFileMessage.classList.add('error');
+                event.target.value = ''; 
+            };
+
+            // بدء قراءة الملف كـ Data URL (مناسب للصور، النصوص، الفيديوهات الصغيرة)
+            reader.readAsDataURL(file);
+        });
+
+
+        // =====================================================================
+        // عند تحميل الصفحة، قم بتحميل نظام الملفات وعرض المجلد الجذر
+        // =====================================================================
+        loadFileSystem();
+        renderDirectory();
+    </script>
+
+</body>
+</html>
