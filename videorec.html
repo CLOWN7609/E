@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسجل الفيديو المتقدم</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: center;
+            background-color: #222;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 700px;
+            width: 90%;
+            margin: 20px auto;
+            padding: 25px;
+            border: 1px solid #444;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-color: #333;
+            border-radius: 10px;
+        }
+        h1 {
+            color: #00aaff;
+            margin-bottom: 25px;
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+            background-color: black;
+            border: 2px solid #555;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 20px;
+            color: #ffcc00;
+            font-size: 0.9em;
+        }
+        .back-button {
+            display: block;
+            width: fit-content;
+            margin: 30px auto 0;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        .resolution-options, .camera-select {
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        .resolution-options select, .camera-select select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: #eee;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>مسجل الفيديو المتقدم</h1>
+
+        <div class="camera-select">
+            <label for="cameraSelect">اختر الكاميرا:</label>
+            <select id="cameraSelect">
+                </select>
+        </div>
+
+        <div class="resolution-options">
+            <label for="resolutionSelect">اختر الدقة:</label>
+            <select id="resolutionSelect">
+                <option value="default">افتراضي (متوافق)</option>
+                <option value="hd">HD (1280x720)</option>
+                <option value="1080p">1080p (1920x1080)</option>
+                <option value="2k">2K (2560x1440)</option>
+                <option value="4k">4K (3840x2160)</option>
+                <option value="8k">8K (7680x4320)</option> </select>
+        </div>
+
+        <video id="videoElement" autoplay muted></video>
+
+        <div class="controls">
+            <button id="startButton">بدء الكاميرا</button>
+            <button id="recordButton" disabled>بدء التسجيل</button>
+            <button id="stopButton" disabled>إيقاف التسجيل</button>
+            <button id="downloadButton" disabled>تحميل الفيديو</button>
+        </div>
+
+        <p id="message" class="message"></p>
+
+        <a href="open.html" class="back-button">العودة إلى النظام</a>
+    </div>
+
+    <script>
+        const videoElement = document.getElementById('videoElement');
+        const startButton = document.getElementById('startButton');
+        const recordButton = document.getElementById('recordButton');
+        const stopButton = document.getElementById('stopButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const messageElement = document.getElementById('message');
+        const cameraSelect = document.getElementById('cameraSelect');
+        const resolutionSelect = document.getElementById('resolutionSelect');
+
+        let mediaRecorder;
+        let recordedChunks = [];
+        let currentStream; // لتخزين تدفق الكاميرا الحالي
+        let availableCameras = []; // لتخزين الكاميرات المتاحة
+
+        // =========================================================
+        // وظائف جديدة ومعدلة
+        // =========================================================
+
+        // 1. جلب الكاميرات المتاحة وتعبئة قائمة الاختيار
+        async function getCameras() {
+            try {
+                // طلب مؤقت للوصول إلى الأجهزة للحصول على الأذونات
+                // هذا يسمح بظهور أسماء الكاميرات بدلاً من "camera 1", "camera 2"
+                let tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                tempStream.getTracks().forEach(track => track.stop()); // إيقاف التدفق المؤقت فوراً
+
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                availableCameras = devices.filter(device => device.kind === 'videoinput');
+
+                cameraSelect.innerHTML = ''; // مسح الخيارات القديمة
+                if (availableCameras.length === 0) {
+                    messageElement.textContent = 'لم يتم العثور على كاميرات.';
+                    cameraSelect.disabled = true;
+                    startButton.disabled = true;
+                    return;
+                }
+
+                availableCameras.forEach(camera => {
+                    const option = document.createElement('option');
+                    option.value = camera.deviceId;
+                    option.textContent = camera.label || `الكاميرا ${availableCameras.indexOf(camera) + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+                startButton.disabled = false; // تمكين زر البدء بعد جلب الكاميرات
+            } catch (err) {
+                messageElement.textContent = `خطأ في جلب الكاميرات: ${err.name}. يرجى السماح بالوصول للكاميرا.`;
+                startButton.disabled = true;
+                cameraSelect.disabled = true;
+                console.error('Error enumerating devices:', err);
+            }
+        }
+
+        // 2. بدء الكاميرا بالدقة والكاميرا المختارة
+        async function startCamera(deviceId, resolution) {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop()); // إيقاف التدفق الحالي
+            }
+
+            let constraints = {
+                video: {
+                    deviceId: deviceId ? { exact: deviceId } : undefined,
+                    width: { ideal: 640 }, // دقة افتراضية آمنة
+                    height: { ideal: 480 }
+                },
+                audio: true
+            };
+
+            switch (resolution) {
+                case 'hd':
+                    constraints.video.width = { ideal: 1280 };
+                    constraints.video.height = { ideal: 720 };
+                    break;
+                case '1080p':
+                    constraints.video.width = { ideal: 1920 };
+                    constraints.video.height = { ideal: 1080 };
+                    break;
+                case '2k':
+                    constraints.video.width = { ideal: 2560 };
+                    constraints.video.height = { ideal: 1440 };
+                    break;
+                case '4k':
+                    constraints.video.width = { ideal: 3840 };
+                    constraints.video.height = { ideal: 2160 };
+                    break;
+                case '8k': // إضافة 8K هنا
+                    constraints.video.width = { ideal: 7680 };
+                    constraints.video.height = { ideal: 4320 };
+                    break;
+                case 'default':
+                default:
+                    // لا تغيير، استخدم الدقة الافتراضية
+                    break;
+            }
+
+            try {
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = currentStream;
+                messageElement.textContent = 'الكاميرا جاهزة!';
+                recordButton.disabled = false;
+                downloadButton.disabled = true;
+                stopButton.disabled = true; // لا يمكن إيقاف قبل بدء التسجيل
+                startButton.textContent = 'إعادة تشغيل الكاميرا'; // تغيير النص
+            } catch (err) {
+                messageElement.textContent = `خطأ: ${err.name}. قد لا تكون الدقة المطلوبة مدعومة، أو الكاميرا غير متاحة.`;
+                console.error('Error starting camera:', err);
+                // محاولة بدقة أقل إذا فشلت الدقة العالية
+                if (resolution !== 'default') {
+                    messageElement.textContent += ' محاولة بدقة افتراضية...';
+                    startCamera(deviceId, 'default');
+                }
+                recordButton.disabled = true;
+            }
+        }
+
+        // =========================================================
+        // معالجة الأحداث (Event Listeners)
+        // =========================================================
+
+        startButton.addEventListener('click', () => {
+            const selectedCameraId = cameraSelect.value;
+            const selectedResolution = resolutionSelect.value;
+            startCamera(selectedCameraId, selectedResolution);
+        });
+
+        recordButton.addEventListener('click', () => {
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(currentStream);
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                videoElement.srcObject = null; // إزالة تدفق الكاميرا المباشر
+                videoElement.src = url; // عرض الفيديو المسجل
+                videoElement.controls = true; // إظهار عناصر التحكم في الفيديو
+                downloadButton.href = url;
+                downloadButton.download = 'my-recorded-video.webm';
+                downloadButton.disabled = false;
+                messageElement.textContent = 'تم التسجيل بنجاح. يمكنك معاينة الفيديو أو تحميله.';
+
+                // إيقاف مسارات الكاميرا والميكروفون بعد التسجيل
+                currentStream.getTracks().forEach(track => track.stop());
+                startButton.disabled = false;
+                startButton.textContent = 'بدء الكاميرا'; // إعادة النص الأصلي
+            };
+
+            mediaRecorder.start();
+            messageElement.textContent = 'بدء التسجيل...';
+            recordButton.disabled = true;
+            stopButton.disabled = false;
+            downloadButton.disabled = true;
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                messageElement.textContent = 'إيقاف التسجيل...';
+                recordButton.disabled = true;
+                stopButton.disabled = true;
+            }
+        });
+
+        // عند تحميل الصفحة، ابدأ بجلب الكاميرات
+        window.onload = getCameras;
+    </script>
+
+</body>
+</html>
