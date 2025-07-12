@@ -3,181 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق الكاميرا والتقاط الصور</title>
+    <title>تطبيق الكاميرا</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: center;
+            background-color: #222;
+            color: #eee;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-            color: #333;
         }
-        #cameraContainer {
-            margin-top: 20px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-            padding: 20px;
-            text-align: center;
-            display: flex; /* استخدام فليكس بوكس لترتيب العناصر */
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin: 20px auto;
+            padding: 25px;
+            border: 1px solid #444;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-color: #333;
+            border-radius: 10px;
+            display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 15px;
+        }
+        h1 {
+            color: #00aaff;
+            margin-bottom: 15px;
         }
         video {
-            max-width: 100%;
+            width: 100%;
+            max-width: 640px;
             height: auto;
-            border-radius: 5px;
-            background-color: #000; /* خلفية سوداء للفيديو قبل التشغيل */
-            margin-bottom: 15px; /* مسافة تحت الفيديو */
+            background-color: #000;
+            border: 1px solid #555;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
         canvas {
-            max-width: 100%;
+            display: block; /* لجعلها تأخذ سطرًا كاملاً */
+            width: 100%;
+            max-width: 640px;
             height: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #eee;
-            margin-top: 20px; /* مسافة فوق الكانفاس */
-            display: none; /* إخفاء الكانفاس مبدئيًا */
+            background-color: #000;
+            border: 1px solid #555;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
         }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
             background-color: #007bff;
             color: white;
+            padding: 10px 20px;
             border: none;
             border-radius: 5px;
-            margin: 5px; /* مسافة بين الأزرار */
+            cursor: pointer;
+            font-size: 1em;
             transition: background-color 0.3s ease;
         }
         button:hover {
             background-color: #0056b3;
         }
-        button#captureButton {
-            background-color: #28a745; /* لون أخضر لزر الالتقاط */
-            display: none; /* إخفاء زر الالتقاط مبدئيًا */
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
         }
-        button#captureButton:hover {
+        button.download {
+            background-color: #28a745;
+        }
+        button.download:hover {
             background-color: #218838;
         }
-        button#downloadButton {
-            background-color: #ffc107; /* لون أصفر لزر التحميل */
-            color: #333;
-            display: none; /* إخفاء زر التحميل مبدئيًا */
+        select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: #eee;
+            font-size: 1em;
+            cursor: pointer;
         }
-        button#downloadButton:hover {
-            background-color: #e0a800;
-        }
-        #statusMessage {
+        .message {
+            color: #ffcc00;
             margin-top: 10px;
-            font-size: 1.1em;
-            color: #555;
+            font-size: 0.9em;
         }
-        #buttonsContainer {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap; /* للسماح للأزرار بالانتقال إلى سطر جديد إذا كانت الشاشة صغيرة */
+        .back-button {
+            display: block;
+            width: fit-content;
+            margin: 20px auto 0;
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
         }
     </style>
 </head>
-  <a href="open.html">you can quit from here</a>
 <body>
-    <h1>تطبيق الكاميرا والتقاط الصور</h1>
-    <div id="cameraContainer">
-        <video id="cameraFeed" autoplay playsinline></video>
-        <canvas id="photoCanvas"></canvas>
-        <p id="statusMessage">اضغط على "تشغيل الكاميرا" للسماح بالوصول.</p>
-        <div id="buttonsContainer">
-            <button id="startButton">تشغيل الكاميرا</button>
-            <button id="captureButton">التقاط صورة</button>
-            <button id="downloadButton">تحميل الصورة</button>
+
+    <div class="container">
+        <h1>تطبيق الكاميرا</h1>
+
+        <video id="videoElement" autoplay playsinline muted></video>
+        <canvas id="canvasElement" style="display: none;"></canvas> <div class="controls">
+            <select id="cameraSelect"></select>
+            <button id="takePhotoButton">التقاط صورة</button>
+            <button id="downloadButton" class="download" disabled>تحميل الصورة</button>
         </div>
+
+        <p id="message" class="message"></p>
+
+        <a href="open.html" class="back-button">العودة إلى النظام</a>
     </div>
 
     <script>
-        const cameraFeed = document.getElementById('cameraFeed');
-        const photoCanvas = document.getElementById('photoCanvas');
-        const context = photoCanvas.getContext('2d'); // للحصول على سياق الرسم للكانفاس
-        const startButton = document.getElementById('startButton');
-        const captureButton = document.getElementById('captureButton');
+        const videoElement = document.getElementById('videoElement');
+        const canvasElement = document.getElementById('canvasElement');
+        const takePhotoButton = document.getElementById('takePhotoButton');
         const downloadButton = document.getElementById('downloadButton');
-        const statusMessage = document.getElementById('statusMessage');
-        let stream = null; // لتخزين تدفق الكاميرا
+        const cameraSelect = document.getElementById('cameraSelect'); // عنصر الكاميرا الجديد
+        const messageElement = document.getElementById('message');
+        const context = canvasElement.getContext('2d');
 
-        // وظيفة لطلب وتشغيل الكاميرا
-        async function startCamera() {
+        let stream; // لتخزين تدفق الكاميرا الحالي
+        let availableCameras = []; // لتخزين قائمة الكاميرات المتاحة
+
+        // =====================================================================
+        // وظائف مساعدة
+        // =====================================================================
+
+        // عرض رسالة للمستخدم
+        function showMessage(msg, type = 'info') {
+            messageElement.textContent = msg;
+            messageElement.style.color = type === 'error' ? '#dc3545' : '#ffcc00';
+        }
+
+        // الحصول على قائمة الكاميرات وتعبئة قائمة الاختيار
+        async function getCameras() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                cameraFeed.srcObject = stream;
-                statusMessage.textContent = 'الكاميرا تعمل بنجاح! يمكنك الآن التقاط الصور.';
-                startButton.style.display = 'none'; // إخفاء زر البدء
-                captureButton.style.display = 'inline-block'; // إظهار زر الالتقاط
-                photoCanvas.style.display = 'none'; // إخفاء الكانفاس عند بدء الكاميرا
-                downloadButton.style.display = 'none'; // إخفاء زر التحميل
-            } catch (error) {
-                console.error('حدث خطأ عند الوصول إلى الكاميرا:', error);
-                if (error.name === 'NotAllowedError') {
-                    statusMessage.textContent = 'تم رفض الوصول إلى الكاميرا. يرجى السماح بالوصول من إعدادات المتصفح.';
-                } else if (error.name === 'NotFoundError') {
-                    statusMessage.textContent = 'لم يتم العثور على كاميرا متصلة.';
-                } else {
-                    statusMessage.textContent = 'حدث خطأ غير متوقع: ' + error.message;
+                // طلب الأذونات أولاً لضمان ظهور الأجهزة
+                await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); // لا نحتاج للصوت هنا
+                
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                availableCameras = devices.filter(device => device.kind === 'videoinput');
+
+                cameraSelect.innerHTML = ''; // مسح الخيارات القديمة
+                if (availableCameras.length === 0) {
+                    const option = document.createElement('option');
+                    option.textContent = 'لا توجد كاميرات متاحة';
+                    cameraSelect.appendChild(option);
+                    takePhotoButton.disabled = true;
+                    showMessage('لا توجد كاميرات فيديو متاحة.', 'error');
+                    return;
                 }
-                startButton.style.display = 'inline-block'; // إظهار زر البدء مرة أخرى
-                captureButton.style.display = 'none';
-                downloadButton.style.display = 'none';
+
+                availableCameras.forEach((camera, index) => {
+                    const option = document.createElement('option');
+                    option.value = camera.deviceId;
+                    option.textContent = camera.label || `الكاميرا ${index + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+                takePhotoButton.disabled = false; // تفعيل زر الالتقاط إذا كانت هناك كاميرات
+            } catch (err) {
+                console.error('حدث خطأ في الحصول على الكاميرات:', err);
+                showMessage('لا يمكن الوصول إلى الكاميرات. تأكد من إعطاء الأذونات.', 'error');
+                takePhotoButton.disabled = true;
             }
         }
 
-        // وظيفة لالتقاط الصورة
-        function capturePhoto() {
+        // بدء تدفق الكاميرا بناءً على الكاميرا المختارة
+        async function startCamera(deviceId) {
             if (stream) {
-                // ضبط أبعاد الكانفاس لتتناسب مع أبعاد الفيديو
-                photoCanvas.width = cameraFeed.videoWidth;
-                photoCanvas.height = cameraFeed.videoHeight;
+                stream.getTracks().forEach(track => track.stop()); // إيقاف التدفق القديم
+            }
 
-                // رسم إطار الفيديو الحالي على الكانفاس
-                context.drawImage(cameraFeed, 0, 0, photoCanvas.width, photoCanvas.height);
+            const constraints = {
+                video: {
+                    deviceId: deviceId ? { exact: deviceId } : undefined // استخدم deviceId إذا تم تحديده
+                },
+                audio: false // لا نحتاج للصوت لالتقاط الصور
+            };
 
-                statusMessage.textContent = 'تم التقاط الصورة!';
-                photoCanvas.style.display = 'block'; // إظهار الكانفاس بالصورة الملتقطة
-                downloadButton.style.display = 'inline-block'; // إظهار زر التحميل
-            } else {
-                statusMessage.textContent = 'الكاميرا غير نشطة. يرجى تشغيل الكاميرا أولاً.';
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
+                videoElement.play();
+                showMessage(''); // مسح أي رسائل سابقة
+                downloadButton.disabled = true; // تعطيل زر التحميل حتى يتم التقاط صورة جديدة
+                canvasElement.style.display = 'none'; // إخفاء الكانفاس عند بدء معاينة جديدة
+                videoElement.style.display = 'block'; // إظهار الفيديو
+            } catch (err) {
+                console.error('حدث خطأ في الوصول إلى الكاميرا:', err);
+                let errorMessage = 'لا يمكن الوصول إلى الكاميرا المختارة. تأكد من الأذونات.';
+                if (err.name === 'NotAllowedError') {
+                    errorMessage = 'تم رفض الوصول إلى الكاميرا. يرجى السماح بالوصول في إعدادات المتصفح.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage = 'لم يتم العثور على كاميرا. تأكد من توصيل الكاميرا بشكل صحيح.';
+                }
+                showMessage(errorMessage, 'error');
+                takePhotoButton.disabled = true;
             }
         }
 
-        // وظيفة لتحميل الصورة
-        function downloadPhoto() {
-            // تحويل محتوى الكانفاس إلى رابط بيانات (Data URL)
-            const dataURL = photoCanvas.toDataURL('image/png'); // يمكنك استخدام 'image/jpeg' أيضًا
+        // =====================================================================
+        // معالجات الأحداث
+        // =====================================================================
 
-            // إنشاء عنصر رابط وهمي
+        takePhotoButton.addEventListener('click', () => {
+            if (!stream) {
+                showMessage('الكاميرا غير جاهزة.', 'error');
+                return;
+            }
+
+            // تعيين أبعاد الكانفاس لتطابق أبعاد الفيديو
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            
+            // رسم الصورة من الفيديو إلى الكانفاس
+            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            
+            // إظهار الكانفاس وإخفاء الفيديو
+            videoElement.style.display = 'none';
+            canvasElement.style.display = 'block';
+
+            // تفعيل زر التحميل
+            downloadButton.disabled = false;
+            showMessage('تم التقاط الصورة. يمكنك الآن تحميلها.');
+        });
+
+        downloadButton.addEventListener('click', () => {
+            // تحويل محتوى الكانفاس إلى Data URL (صورة PNG افتراضياً)
+            const imageDataURL = canvasElement.toDataURL('image/png');
+            
+            // إنشاء رابط وهمي لتحميل الصورة
             const a = document.createElement('a');
-            a.href = dataURL;
-            a.download = 'captured_photo.png'; // اسم الملف عند التحميل
-            document.body.appendChild(a); // إضافة الرابط إلى DOM مؤقتًا
-            a.click(); // النقر على الرابط لتشغيل التحميل
-            document.body.removeChild(a); // إزالة الرابط بعد التحميل
-        }
+            a.href = imageDataURL;
+            a.download = `photo-${Date.now()}.png`; // اسم الملف
+            document.body.appendChild(a); // يجب إضافة العنصر إلى DOM ليتم النقر عليه
+            a.click(); // النقر على الرابط لتنزيل الصورة
+            document.body.removeChild(a); // إزالة الرابط بعد التنزيل
+            showMessage('تم تحميل الصورة.');
+        });
 
-        // إضافة مستمعي الأحداث للأزرار
-        startButton.addEventListener('click', startCamera);
-        captureButton.addEventListener('click', capturePhoto);
-        downloadButton.addEventListener('click', downloadPhoto);
+        // عند تغيير الكاميرا المختارة، أعد تشغيل تدفق الكاميرا
+        cameraSelect.addEventListener('change', async () => {
+            const selectedDeviceId = cameraSelect.value;
+            await startCamera(selectedDeviceId);
+        });
 
-        // مهم: إيقاف تدفق الكاميرا عند مغادرة الصفحة أو إغلاقها
-        window.addEventListener('beforeunload', () => {
+        // =====================================================================
+        // عند تحميل الصفحة
+        // =====================================================================
+        window.onload = async () => {
+            await getCameras(); // احصل على الكاميرات المتاحة
+            if (availableCameras.length > 0) {
+                // ابدأ الكاميرا الافتراضية أو الكاميرا الأولى
+                await startCamera(cameraSelect.value); 
+            }
+        };
+
+        // عند مغادرة الصفحة، تأكد من إيقاف تدفق الكاميرا
+        window.onbeforeunload = () => {
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
-        });
+        };
     </script>
+
 </body>
 </html>
