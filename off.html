@@ -1,3 +1,41 @@
 <!DOCTYPE html>
+<title> The device is OFF</title>
+<style>
+body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            direction: rtl;
+            text-align: left; /* محاذاة لليمين للنص العربي */
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+.button {
+            display: block;
+            width: fit-content;
+            margin: 30px auto 0;
+            background-color: green;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: black;
+        }
+h1 {
+  color: yellow;
+}
+h2 {
+  color: lime;
+}
+</style>
 <h1>the device is off do you want to start it you can by pressing the button "turn on device"</h1>
-<a href="lockscreen.html">turn on device</a>
+<img src="./pictures/power.jpg" width="50%" height="50%">
+<a href="lockscreen.html" class="button">turn on device</a>
